@@ -8,13 +8,14 @@
 Summary:	Python 3 library for working with RDF
 Summary(pl.UTF-8):	Biblioteka Pythona 3 do pracy z RDF
 Name:		python3-%{module}
-Version:	6.1.1
+# 6.3.0+ uses poetry instead of setuptools
+Version:	6.2.0
 Release:	1
 License:	BSD
 Group:		Libraries/Python
 #Source0Download: https://github.com/RDFLib/rdflib/releases
 Source0:	https://github.com/RDFLib/rdflib/archive/%{version}/%{module}-%{version}.tar.gz
-# Source0-md5:	c47721e1a23adb089072ef374101e2ca
+# Source0-md5:	8120a87ba4a60b1024906e5328004e87
 URL:		https://rdflib.dev/
 BuildRequires:	python3-modules >= 1:3.7
 BuildRequires:	python3-setuptools
@@ -34,7 +35,10 @@ BuildRequires:	python3-pytest-subtests
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.749
 %if %{with doc}
+BuildRequires:	python3-myst_parser
+BuildRequires:	python3-sphinx_autodoc_typehints
 BuildRequires:	python3-sphinxcontrib-apidoc
+BuildRequires:	python3-sphinxcontrib-kroki
 BuildRequires:	sphinx-pdg >= 4.1.2
 %endif
 Requires:	python3-modules >= 1:3.7
