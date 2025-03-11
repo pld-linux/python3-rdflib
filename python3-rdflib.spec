@@ -10,7 +10,7 @@ Summary(pl.UTF-8):	Biblioteka Pythona 3 do pracy z RDF
 Name:		python3-%{module}
 # 6.3.0+ uses poetry instead of setuptools
 Version:	6.2.0
-Release:	2
+Release:	3
 License:	BSD
 Group:		Libraries/Python
 #Source0Download: https://github.com/RDFLib/rdflib/releases
