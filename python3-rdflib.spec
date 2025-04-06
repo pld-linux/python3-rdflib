@@ -35,6 +35,7 @@ BuildRequires:	python3-pytest-subtests
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.749
 %if %{with doc}
+BuildRequires:	python3-isodate
 BuildRequires:	python3-myst_parser
 BuildRequires:	python3-sphinx_autodoc_typehints
 BuildRequires:	python3-sphinxcontrib-apidoc
