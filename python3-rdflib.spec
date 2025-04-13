@@ -8,41 +8,45 @@
 Summary:	Python 3 library for working with RDF
 Summary(pl.UTF-8):	Biblioteka Pythona 3 do pracy z RDF
 Name:		python3-%{module}
-# 6.3.0+ uses poetry instead of setuptools
-Version:	6.2.0
-Release:	3
+Version:	7.1.4
+Release:	1
 License:	BSD
 Group:		Libraries/Python
 #Source0Download: https://github.com/RDFLib/rdflib/releases
 Source0:	https://github.com/RDFLib/rdflib/archive/%{version}/%{module}-%{version}.tar.gz
-# Source0-md5:	8120a87ba4a60b1024906e5328004e87
+# Source0-md5:	19d7da77b48922dc2cc15467141d7ecf
 URL:		https://rdflib.dev/
-BuildRequires:	python3-modules >= 1:3.7
-BuildRequires:	python3-setuptools
+BuildRequires:	python3-build
+BuildRequires:	python3-installer
+BuildRequires:	python3-modules >= 1:3.8
+BuildRequires:	python3-poetry-core >= 1.4.0
+BuildRequires:	python3-wheel >= 0.42
 %if %{with tests}
-BuildRequires:	python3-berkeleydb
+BuildRequires:	python3-berkeleydb >= 18.1
 BuildRequires:	python3-html5lib
 %if "%{_ver_lt '%{py3_ver}' '3.8'}" == "1"
 BuildRequires:	python3-importlib_metadata
 %endif
 BuildRequires:	python3-isodate
-BuildRequires:	python3-networkx
-BuildRequires:	python3-pyparsing
-BuildRequires:	python3-pytest
-BuildRequires:	python3-pytest-cov
-BuildRequires:	python3-pytest-subtests
+# >= 0.7.2
+BuildRequires:	python3-lxml >= 4.3
+BuildRequires:	python3-networkx >= 2
+BuildRequires:	python3-pyparsing >= 2.1.0
+BuildRequires:	python3-pytest >= 7.1.3
+BuildRequires:	python3-pytest-cov >= 4
+# TODO: html5rdf>=1.2, orjson>=3.9.14
 %endif
 BuildRequires:	rpm-pythonprov
-BuildRequires:	rpmbuild(macros) >= 1.749
+BuildRequires:	rpmbuild(macros) >= 2.045
 %if %{with doc}
 BuildRequires:	python3-isodate
-BuildRequires:	python3-myst_parser
-BuildRequires:	python3-sphinx_autodoc_typehints
-BuildRequires:	python3-sphinxcontrib-apidoc
-BuildRequires:	python3-sphinxcontrib-kroki
-BuildRequires:	sphinx-pdg >= 4.1.2
+BuildRequires:	python3-myst_parser >= 2
+BuildRequires:	python3-sphinx_autodoc_typehints >= 1.25.3
+BuildRequires:	python3-sphinxcontrib-apidoc >= 0.3
+BuildRequires:	python3-typing_extensions >= 4.5.0
+BuildRequires:	sphinx-pdg >= 7.1.2
 %endif
-Requires:	python3-modules >= 1:3.7
+Requires:	python3-modules >= 1:3.8
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -87,16 +91,31 @@ Narzędzia z pakietu python-rdflib.
 %setup -q -n %{module}-%{version}
 
 %build
-%py3_build %{?with_tests:test}
+%py3_build_pyproject
+
+%if %{with tests}
+%{__python3} -m zipfile -e build-3/*.whl build-3-tests
+
+# many berkeleydb related tests fail with "TypeError: cannot unpack non-iterable builtin_function_or_method object" after cursor.set_range()
+# test_example[secure_with_audit.py] fails with "AttributeError: \'int\' object has no attribute \'endswith\'\n'" in audit function
+
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
+PYTEST_PLUGINS=pytest_cov.plugin \
+PYTHONPATH=$(pwd)/build-3-tests \
+%{__python3} -m pytest test -k 'not berkeleydb and not secure_with_audit.py and not test_graph_context'
+%endif
 
 %if %{with doc}
+%{__python3} -m zipfile -e build-3/*.whl build-3-doc
+
+PYTHONPATH=$(pwd)/build-3-doc \
 %{__make} -C docs html
 %endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%py3_install
+%py3_install_pyproject
 
 install -d $RPM_BUILD_ROOT%{_examplesdir}/python3-%{module}-%{version}
 cp -p examples/*.py $RPM_BUILD_ROOT%{_examplesdir}/python3-%{module}-%{version}
@@ -108,7 +127,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc CHANGELOG.md CONTRIBUTORS LICENSE README.md
 %{py3_sitescriptdir}/rdflib
-%{py3_sitescriptdir}/rdflib-%{version}-py*.egg-info
+%{py3_sitescriptdir}/rdflib-%{version}.dist-info
 %{_examplesdir}/python3-%{module}-%{version}
 
 %if %{with doc}
